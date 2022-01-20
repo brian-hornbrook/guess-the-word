@@ -2,22 +2,24 @@ const yourGuesses = document.querySelector(".guessed-letters");
 const guessButton = document.querySelector(".guess");
 const guessLetters = document.querySelector(".letter");
 const wordInProgress = document.querySelector(".word-in-progress");
-const remaining = document.querySelector(".remaining");
+const remainingText = document.querySelector(".remaining");
 const remainingGuesses = document.querySelector(".remaining span");
 const guessMessage = document.querySelector(".message");
 const playAgainButton = document.querySelector(".play-again");
 const word = "magnolia";
+let guessingWord = "";
 const guessedLetters = [];
+let guessesCount = 8;
 
-// update word
-const updateWordInProgress = function () {
+// start game with all hidden letters
+const startGame = function () {
     let blockedWord = "";
     for (let i = 0; i < word.length; i++) {
-        blockedWord += "●";
+        guessingWord += "●";
     }
-    wordInProgress.innerText = blockedWord;
+    wordInProgress.innerText = guessingWord;
 };
-updateWordInProgress();
+startGame();
 
 // guess button
 guessButton.addEventListener("click", e => {
@@ -26,10 +28,9 @@ guessButton.addEventListener("click", e => {
     guessMessage.innerText = value;
     guessLetters.value = "";
     validateInput(value);
-    console.log(guessedLetters);
 });
 
-// validate input
+// check if input is valid
 const validateInput = function (input) {
     const acceptedLetter = /[a-z]/
     if (input === "") {
@@ -43,6 +44,7 @@ const validateInput = function (input) {
     }
 };
 
+// guess call
 const makeGuess = function (guess) {
     let added = true;
     guessedLetters.forEach(letter => {
@@ -54,5 +56,42 @@ const makeGuess = function (guess) {
     if (added === true || guessedLetters.length === 0) {
         guessedLetters.push(guess);
         yourGuesses.innerHTML = guessedLetters.join("&nbsp;&nbsp;&nbsp;&nbsp;");
+        checkWord(guess);
     }
+};
+
+// run the game one turn
+const checkWord = function (guess) {
+    let updateWord = "";
+    let won = true;
+    for (let i = 0; i < word.length; i++) {
+        if (guessingWord[i] !== "●") {
+            updateWord += guessingWord[i]
+        }
+        else if (guess.toUpperCase() === word[i].toUpperCase()) {
+            updateWord += guess.toLowerCase();
+        } else {
+            updateWord += "●";
+            won = false;
+        }
+    }
+    guessingWord = updateWord;
+    rungame(won);
+};
+
+// check if game is over
+const rungame = function (won) {
+    guessesCount -= 1;
+    if (won === true) {
+        gameOver();
+        guessMessage.innerHTML = `<p class="highlight">You guessed the word! Contgrats!</p>`;
+    } else {
+        wordInProgress.innerText = guessingWord;
+        remainingGuesses.innerText = `${guessesCount} guesses`;
+    }
+};
+
+const gameOver = function (notFinished) {
+    yourGuesses.innerText = "";
+    remainingText.innerText = "";
 };
