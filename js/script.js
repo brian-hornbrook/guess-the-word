@@ -6,29 +6,48 @@ const remainingText = document.querySelector(".remaining");
 const remainingGuesses = document.querySelector(".remaining span");
 const guessMessage = document.querySelector(".message");
 const playAgainButton = document.querySelector(".play-again");
-const word = "magnolia";
+let word = "test";
 let guessingWord = "";
-const guessedLetters = [];
+let guessedLetters = [];
 let guessesCount = 8;
+let isGameOver = false;
+
+// download words
+const downloadWords = async function () {
+    const request = await fetch("https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt");
+    const data = await request.text();
+    const words = data.split("\n");
+    const randomWordIndex = Math.floor(Math.random() * words.length);
+    word = words[randomWordIndex];
+    setGuesses();
+};
+downloadWords();
 
 // start game with all hidden letters
-const startGame = function () {
-    let blockedWord = "";
+const setGuesses = function () {
+    guessingWord = "";
     for (let i = 0; i < word.length; i++) {
         guessingWord += "●";
     }
     wordInProgress.innerText = guessingWord;
 };
-startGame();
 
 // guess button
 guessButton.addEventListener("click", e => {
     e.preventDefault();
+    if (isGameOver === false) {
+        display();
+    } else {
+        startOver();
+    }
+});
+
+const display = function () {
     const value = guessLetters.value;
     guessMessage.innerText = value;
     guessLetters.value = "";
     validateInput(value);
-});
+};
 
 // check if input is valid
 const validateInput = function (input) {
@@ -82,16 +101,32 @@ const checkWord = function (guess) {
 // check if game is over
 const rungame = function (won) {
     guessesCount -= 1;
+    wordInProgress.innerText = guessingWord;
+    remainingGuesses.innerText = `${guessesCount} guesses`;
     if (won === true) {
         gameOver();
         guessMessage.innerHTML = `<p class="highlight">You guessed the word! Contgrats!</p>`;
-    } else {
-        wordInProgress.innerText = guessingWord;
-        remainingGuesses.innerText = `${guessesCount} guesses`;
+    } else if (guessesCount < 1) {
+        gameOver();
+        guessMessage.innerHTML = `<p class="loose">You Lost!</p>`;
     }
 };
 
-const gameOver = function (notFinished) {
+const gameOver = function () {
     yourGuesses.innerText = "";
-    remainingText.innerText = "";
+    remainingText.classList.add("hide");
+    guessButton.innerText = "Start Game over!";
+    isGameOver = true;
+};
+
+const startOver = function () {
+    guessButton.innerText = "Guess!";
+    remainingText.classList.remove("hide");
+    guessedLetters = [];
+    guessesCount = 8;
+    remainingGuesses.innerHTML = `${guessesCount} guesses`;
+    guessMessage.innerHTML = "<p></p>";
+    downloadWords();
+    setGuesses();
+    isGameOver = false;
 };
